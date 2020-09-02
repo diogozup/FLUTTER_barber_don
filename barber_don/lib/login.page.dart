@@ -1,25 +1,100 @@
 import 'package:barber_don/Home.dart';
 import 'package:barber_don/ResetPassword.dart';
 import 'package:barber_don/Signup.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
-class LoginPage extends StatelessWidget {
+//Facebook auth
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
+class LoginPage extends StatefulWidget {
+//Facebook auth
+  static final FacebookLogin facebookSignIn = new FacebookLogin();
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  //!------------------------------------------ global vars
   String _useremail;
-
   String _userpassword;
+  bool userIsFacebookLogged = false;
+  // Initialize the default app
+  //final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void FazerTeste(){
+  //!------------------------------------------ funcoes
+  //------------------------------------------- facebook start
+  String _message = 'Log in/out by pressing the buttons below.';
 
+  Future<Null> _login() async {
+    final FacebookLoginResult result =
+        await LoginPage.facebookSignIn.logIn(['email']);
+
+    print("RESULT:" + result.toString());
+    print("RESULT:" + result.status.toString());
+    final token = result.accessToken.token;
+    final graphResponse = await http.get(
+        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name&access_token=${token}');
+    print(graphResponse.body);
+
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+        final FacebookAccessToken accessToken = result.accessToken;
+        print("****************** ENTROU PELO FACEBOOK ***************");
+        // GRAVAR AQUI NO FIREBASE O CLIENTE QUE LOGGOU PELO FACEBOOK
+
+        setState(() {
+          userIsFacebookLogged = true;
+        });
+
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        print("****************** CANCELED FACEBOOK ***************");
+        break;
+      case FacebookLoginStatus.error:
+        print("****************** ERROR FACEBOOK ***************");
+        print('Here\'s the error Facebook gave us: ${result.errorMessage}');
+        break;
+    }
+  }
+
+  Future<Null> _logOut() async {
+    await LoginPage.facebookSignIn.logOut();
+    print("****************** SAIU DO FACEBOOK ***************");
+    setState(() {
+      userIsFacebookLogged = false;
+    });
+  }
+
+  //------------------------------------------- facebook end
+  void _goToScreenHome() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => Home()),
+    );
+    // void _goToScreenHome(){
+    //     Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => Home()),
+    // );
+  }
+
+  void FazerTeste() {
     print("Isto e _useremail");
     print(_useremail);
-
     print("Isto e _userpassword");
     print(_userpassword);
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return Scaffold(
       body: Container(
         padding: EdgeInsets.only(
@@ -77,43 +152,39 @@ class LoginPage extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: FlatButton(
                 child: Text(
-                    "Recuperar Senha",
+                  "Recuperar Senha",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: 10,
                   ),
                   textAlign: TextAlign.right,
                 ),
-                onPressed: (){
+                onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ResetPassword(),
-                      ),
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResetPassword(),
+                    ),
                   );
                 },
               ),
             ),
-
-            Container(
-              height: 40,
-              alignment: Alignment.centerRight,
-              child: FlatButton(
-                child: Text(
-                  "Teste",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                  textAlign: TextAlign.right,
-                ),
-                onPressed: FazerTeste,
-              ),
-            ),
-
-            SizedBox(
-              height: 40,
-            ),
+            // Container(
+            //   height: 40,
+            //   alignment: Alignment.centerRight,
+            //   child: FlatButton(
+            //     child: Text(
+            //       "Teste",
+            //       style: TextStyle(
+            //         fontWeight: FontWeight.bold,
+            //         fontSize: 20,
+            //       ),
+            //       textAlign: TextAlign.right,
+            //     ),
+            //     onPressed: FazerTeste,
+            //   ),
+            // ),
+            SizedBox(height: 20),
             Container(
               height: 60,
               alignment: Alignment.centerLeft,
@@ -122,11 +193,8 @@ class LoginPage extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   stops: [0.3, 1],
-                  colors: [
-                    Color(0xff1a0f00),
-                    Colors.red
-                  ],
-              ),
+                  colors: [Color(0xff1a0f00), Colors.red],
+                ),
                 borderRadius: BorderRadius.all(
                   Radius.circular(5),
                 ),
@@ -137,7 +205,7 @@ class LoginPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                          "Login",
+                        "Login",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -147,32 +215,74 @@ class LoginPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  onPressed: (){
-                    Navigator.push(context,
-                      MaterialPageRoute(
-                          builder: (context) => Home()
-                      ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Home()),
                     );
                   },
                 ),
               ),
             ),
-            SizedBox(
-              height: 20,
+            SizedBox(height: 20),
+            Container(
+              height: 60,
+              alignment: Alignment.centerLeft,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: [0.3, 1],
+                  colors: [Colors.black, Colors.blue],
+                ),
+                borderRadius: BorderRadius.all(
+                  Radius.circular(5),
+                ),
+              ),
+              child: SizedBox.expand(
+                child: FlatButton(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: (userIsFacebookLogged == false)
+                        ? <Widget>[
+                            Text(
+                              "Login com Facebook",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 25,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ]
+                        : <Widget>[
+                            Text(
+                              "Logout do Facebook",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 25,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                          ],
+                  ),
+                  onPressed: (userIsFacebookLogged == false) ? _login : _logOut,
+                ),
+              ),
             ),
             Container(
               height: 40,
               child: FlatButton(
                 child: Text(
-                    "Cadastre-se",
+                  "Cadastre-se",
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.black
-                  ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
-                onPressed: (){
+                onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -182,7 +292,6 @@ class LoginPage extends StatelessWidget {
                 },
               ),
             ),
-
           ],
         ),
       ),
