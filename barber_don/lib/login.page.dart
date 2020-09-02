@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
+import 'dart:convert';
 
 //Facebook auth
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
@@ -21,6 +22,10 @@ class _LoginPageState extends State<LoginPage> {
   //!------------------------------------------ global vars
   String _useremail;
   String _userpassword;
+  String _usernameFirst;
+  String _usernameLast;
+  String _username;
+
   bool userIsFacebookLogged = false;
   // Initialize the default app
   //final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -44,6 +49,15 @@ class _LoginPageState extends State<LoginPage> {
       case FacebookLoginStatus.loggedIn:
         final FacebookAccessToken accessToken = result.accessToken;
         print("****************** ENTROU PELO FACEBOOK ***************");
+        String facebookUserData = graphResponse.body;
+        final body = json.decode(facebookUserData);
+        _username = body['name'];
+        _usernameFirst = body['first_name'];
+        _usernameLast = body['last_name'];
+        print("Nome Completo: " + _username);
+        print("Primeiro Nome: " + _usernameFirst);
+        print("Último Nome: " + _usernameLast);
+
         // GRAVAR AQUI NO FIREBASE O CLIENTE QUE LOGGOU PELO FACEBOOK
 
         setState(() {
