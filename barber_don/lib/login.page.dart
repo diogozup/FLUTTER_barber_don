@@ -1,11 +1,12 @@
 import 'package:barber_don/Home.dart';
 import 'package:barber_don/ResetPassword.dart';
 import 'package:barber_don/Signup.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'dart:convert';
+//import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 //Facebook auth
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
@@ -25,12 +26,25 @@ class _LoginPageState extends State<LoginPage> {
   String _usernameFirst;
   String _usernameLast;
   String _username;
-
   bool userIsFacebookLogged = false;
-  // Initialize the default app
-  //final FirebaseAuth _auth = FirebaseAuth.instance;
 
   //!------------------------------------------ funcoes
+  //*------------------------------------------ Firebase
+  void _onPressed() {
+    print("pressed");
+    // ignore: deprecated_member_use
+    final firestoreInstance = Firestore.instance;
+    firestoreInstance.collection("users").add({
+      "name": "john",
+      "age": 50,
+      "email": "example@example.com",
+      "address": {"street": "street 24", "city": "new york"}
+    }).then((value) {
+      // ignore: deprecated_member_use
+      print(value.documentID);
+    });
+  }
+
   //------------------------------------------- facebook start
   String _message = 'Log in/out by pressing the buttons below.';
 
@@ -101,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
     print(_useremail);
     print("Isto e _userpassword");
     print(_userpassword);
+    _onPressed();
   }
 
   @override
@@ -183,21 +198,21 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
             ),
-            // Container(
-            //   height: 40,
-            //   alignment: Alignment.centerRight,
-            //   child: FlatButton(
-            //     child: Text(
-            //       "Teste",
-            //       style: TextStyle(
-            //         fontWeight: FontWeight.bold,
-            //         fontSize: 20,
-            //       ),
-            //       textAlign: TextAlign.right,
-            //     ),
-            //     onPressed: FazerTeste,
-            //   ),
-            // ),
+            Container(
+              height: 20,
+              alignment: Alignment.centerRight,
+              child: FlatButton(
+                child: Text(
+                  "Teste",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                onPressed: FazerTeste,
+              ),
+            ),
             SizedBox(height: 20),
             Container(
               height: 60,
